@@ -82,7 +82,6 @@ def push_plus(content):
     headers = {'Content-Type': 'application/json'}
     requests.post(url, data=body, headers=headers)
 
-# 主函数
 def main():
     # 获取最新优选IP
     ip_addresses_str = get_cf_speed_test_ip()
@@ -90,13 +89,23 @@ def main():
     dns_records = get_dns_records(CF_DNS_NAME)
     print(dns_records)
     push_plus_content = []
+
+    # 获取第一个 DNS 记录
+    if len(dns_records) > 0:
+        dns_record = dns_records[0]
+    else:
+        print("没有获取到 DNS 记录")
+        return
+
     # 遍历 IP 地址列表
-    for index, ip_address in enumerate(ip_addresses):
+    for ip_address in ip_addresses:
         # 执行 DNS 变更
-        dns = update_dns_record(dns_records[index], CF_DNS_NAME, ip_address)
+        dns = update_dns_record(dns_record, CF_DNS_NAME, ip_address)
         push_plus_content.append(dns)
 
     push_plus('\n'.join(push_plus_content))
+
+
 
 if __name__ == '__main__':
     main()
