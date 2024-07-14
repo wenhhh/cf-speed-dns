@@ -32,18 +32,14 @@ def get_cf_speed_test_ip(timeout=10, max_retries=5):
     return None
 
 # 获取 DNS 记录
-def get_dns_records(name):
-    def_info = []
+def get_dns_records():
     url = f'https://api.cloudflare.com/client/v4/zones/{CF_ZONE_ID}/dns_records'
     response = requests.get(url, headers=headers)
     if response.status_code == 200:
-        records = response.json()['result']
-        for record in records:
-            if name in record['name']:
-                def_info.append(record['id'])
-        return def_info
+        return response.json()['result']
     else:
         print('Error fetching DNS records:', response.text)
+        return []
 
 # 更新 DNS 记录
 def update_dns_record(record_id, name, cf_ip):
@@ -87,7 +83,7 @@ def main():
     push_plus_content = []
 
     # 获取现有的 DNS 记录
-    dns_records = get_dns_records(CF_DNS_NAME)
+    dns_records = get_dns_records()
 
     # 遍历 IP 地址列表
     for index, ip_address in enumerate(ip_addresses):
@@ -98,7 +94,7 @@ def main():
 
         if dns_record:
             # 执行 DNS 变更
-            dns = update_dns_record(dns_record, domain_name, ip_address)
+            dns = update_dns_record(dns_record['id'], domain_name, ip_address)
             push_plus_content.append(dns)
         else:
             print(f"没有找到对应的 DNS 记录: {domain_name}")
