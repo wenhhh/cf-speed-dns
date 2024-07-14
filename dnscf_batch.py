@@ -62,6 +62,29 @@ def update_dns_record(record_id, name, cf_ip):
             time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())) + " ---- MESSAGE: " + response.text)
         return "ip:" + str(cf_ip) + "解析" + str(name) + "失败"
 
+# 创建 DNS 记录
+def create_dns_record(name, cf_ip):
+    url = f'https://api.cloudflare.com/client/v4/zones/{CF_ZONE_ID}/dns_records'
+    data = {
+        'type': 'A',
+        'name': name,
+        'content': cf_ip,
+        'ttl': 1,
+        'proxied': False
+    }
+
+    response = requests.post(url, headers=headers, json=data)
+
+    if response.status_code == 200:
+        print(f"cf_dns_create success: ---- Time: " + str(
+            time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())) + " ---- ip：" + str(cf_ip))
+        return "ip:" + str(cf_ip) + "解析" + str(name) + "成功"
+    else:
+        traceback.print_exc()
+        print(f"cf_dns_create ERROR: ---- Time: " + str(
+            time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())) + " ---- MESSAGE: " + response.text)
+        return "ip:" + str(cf_ip) + "解析" + str(name) + "失败"
+
 # 消息推送
 def push_plus(content):
     url = 'http://www.pushplus.plus/send'
@@ -95,9 +118,11 @@ def main():
         if dns_record:
             # 执行 DNS 变更
             dns = update_dns_record(dns_record['id'], domain_name, ip_address)
-            push_plus_content.append(dns)
         else:
-            print(f"没有找到对应的 DNS 记录: {domain_name}")
+            # 创建新的 DNS 记录
+            dns = create_dns_record(domain_name, ip_address)
+
+        push_plus_content.append(dns)
 
     push_plus('\n'.join(push_plus_content))
 
