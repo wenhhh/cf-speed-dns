@@ -110,7 +110,8 @@ def main():
 
     # 遍历 IP 地址列表
     for index, ip_address in enumerate(ip_addresses):
-        domain_name = f"{CF_DNS_NAME}{index+1}"
+        sub_domain, base_domain = CF_DNS_NAME.split('.', 1)
+        domain_name = f"{sub_domain}{index+1}.{base_domain}"
 
         # 获取对应的 DNS 记录 ID
         dns_record = next((record for record in dns_records if record['name'] == domain_name), None)
